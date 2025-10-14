@@ -1,0 +1,13 @@
+[
+  {
+    "resume_id": 37201447,
+    "candidate_skills": "['go']",
+    "candidate_experience": 20.0,
+    "recommendations": [
+      {
+        "job_id": "JOB006",
+        "title": "Java Backend Developer",
+        "company": "Enterprise Systems",
+        "category": "Java Developer",
+        "salary_range": "$95k-$135k",
+        "match_score":
