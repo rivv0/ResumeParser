@@ -1,8 +1,3 @@
-"""
-Flask Web Application for Advanced ML Resume Matcher
-Uses BGE and other state-of-the-art models for accurate job matching
-"""
-
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import os
 from werkzeug.utils import secure_filename
@@ -13,18 +8,16 @@ from ml_resume_matcher import AdvancedResumeMLMatcher
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ml-resume-matcher-secret-key'
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-
-# Ensure upload directory exists
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Initialize the ML matcher (this may take a few minutes on first run)
-print("🚀 Initializing Advanced ML Resume Matcher...")
+
+print("Initializing Advanced ML Resume Matcher...")
 try:
     ml_matcher = AdvancedResumeMLMatcher()
-    print("✅ ML Matcher initialized successfully!")
+    print("ML Matcher initialized successfully!")
 except Exception as e:
-    print(f"❌ Error initializing ML Matcher: {e}")
+    print(f"Error initializing ML Matcher: {e}")
     ml_matcher = None
 
 @app.route('/')
@@ -439,11 +432,11 @@ def upload_file():
                 return redirect(url_for('index'))
             
             # Analyze resume with ML
-            print("🔍 Starting ML analysis...")
+            print("Starting ML analysis")
             resume_analysis = ml_matcher.analyze_resume(resume_text)
             
             # Find job matches
-            print("🎯 Finding job matches...")
+            print("Finding job matches")
             job_matches = ml_matcher.find_job_matches(resume_analysis, top_n=10)
             
             # Clean up uploaded file
