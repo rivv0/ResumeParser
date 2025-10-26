@@ -37,28 +37,101 @@ def extract_skills(text):
     skills_db = [
         # Programming Languages
         'python', 'java', 'javascript', 'typescript', 'c++', 'c#', 'php', 'ruby', 'go', 'rust', 'swift', 'kotlin',
+        'scala', 'r', 'matlab', 'perl', 'shell', 'bash', 'powershell',
         
         # Web Technologies
         'react', 'angular', 'vue', 'node.js', 'django', 'flask', 'spring', 'express', 'html', 'css', 'sass', 'bootstrap',
+        'jquery', 'webpack', 'less', 'tailwind', 'laravel',
         
         # Databases
-        'sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'oracle', 'sqlite', 'cassandra',
+        'sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'oracle', 'sqlite', 'cassandra', 'elasticsearch', 'dynamodb', 'firebase',
         
         # Cloud & DevOps
         'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'terraform', 'ansible', 'linux', 'unix',
+        'ci/cd', 'gitlab', 'github', 'chef', 'puppet', 'vagrant',
         
         # Data & ML
         'machine learning', 'data science', 'tensorflow', 'pytorch', 'pandas', 'numpy', 'scikit-learn', 'tableau', 'power bi',
+        'deep learning', 'data analysis', 'statistics', 'excel', 'spark', 'hadoop',
         
-        # Business Skills
-        'accounting', 'finance', 'marketing', 'sales', 'management', 'leadership', 'communication', 'negotiation',
-        'project management', 'agile', 'scrum', 'excel', 'powerpoint', 'analytics', 'business analysis',
+        # Sales & Marketing
+        'sales', 'lead generation', 'cold calling', 'crm', 'salesforce', 'hubspot', 'b2b sales', 'b2c sales',
+        'account management', 'business development', 'negotiation', 'closing deals', 'pipeline management',
+        'customer relationship management', 'prospecting', 'sales forecasting', 'territory management',
+        'retail sales', 'inside sales', 'outside sales', 'channel sales', 'partnership development',
+        'marketing', 'digital marketing', 'content marketing', 'social media marketing', 'email marketing',
+        'seo', 'sem', 'ppc', 'google ads', 'facebook ads', 'linkedin ads', 'marketing automation',
+        'brand management', 'campaign management', 'market research', 'competitive analysis',
         
-        # Design & Creative
-        'photoshop', 'illustrator', 'figma', 'sketch', 'ux', 'ui', 'design', 'creative', 'branding',
+        # Digital Media & Creative
+        'digital media', 'social media', 'content creation', 'copywriting', 'video editing', 'photography',
+        'graphic design', 'adobe creative suite', 'photoshop', 'illustrator', 'indesign', 'premiere pro',
+        'after effects', 'figma', 'sketch', 'canva', 'video production', 'audio editing', 'podcasting',
+        'youtube', 'instagram', 'tiktok', 'twitter', 'facebook', 'linkedin', 'pinterest', 'snapchat',
+        'influencer marketing', 'community management', 'brand storytelling', 'visual communication',
+        
+        # Culinary & Food Service
+        'cooking', 'culinary arts', 'food preparation', 'menu planning', 'recipe development', 'baking',
+        'pastry', 'food safety', 'haccp', 'kitchen management', 'inventory management', 'cost control',
+        'food presentation', 'plating', 'wine pairing', 'beverage service', 'catering', 'restaurant management',
+        'food styling', 'nutrition', 'dietary restrictions', 'allergen management', 'sous vide', 'grilling',
+        'knife skills', 'food costing', 'vendor management', 'staff training', 'customer service',
+        
+        # Consulting & Business
+        'consulting', 'business analysis', 'strategy', 'process improvement', 'change management',
+        'project management', 'stakeholder management', 'requirements gathering', 'problem solving',
+        'analytical thinking', 'presentation skills', 'client management', 'business case development',
+        'roi analysis', 'kpi development', 'performance metrics', 'operational excellence',
+        'lean methodology', 'six sigma', 'business intelligence', 'market analysis', 'feasibility studies',
+        
+        # Arts & Creative
+        'fine arts', 'painting', 'drawing', 'sculpture', 'ceramics', 'printmaking', 'mixed media',
+        'art history', 'art criticism', 'gallery management', 'exhibition planning', 'art curation',
+        'art education', 'art therapy', 'creative writing', 'poetry', 'screenwriting', 'storytelling',
+        'theater', 'acting', 'directing', 'stage management', 'costume design', 'set design',
+        'music', 'composition', 'performance', 'music production', 'sound engineering',
+        
+        # Automotive
+        'automotive', 'mechanical repair', 'engine diagnostics', 'brake systems', 'transmission repair',
+        'electrical systems', 'air conditioning', 'suspension', 'alignment', 'tire service',
+        'automotive sales', 'parts management', 'service advisor', 'warranty claims', 'obd diagnostics',
+        'hybrid vehicles', 'electric vehicles', 'automotive technology', 'collision repair', 'painting',
+        'body work', 'frame repair', 'insurance claims', 'automotive finance',
+        
+        # Design
+        'ui design', 'ux design', 'user experience', 'user interface', 'wireframing', 'prototyping',
+        'design thinking', 'user research', 'usability testing', 'information architecture',
+        'interaction design', 'visual design', 'typography', 'color theory', 'layout design',
+        'responsive design', 'mobile design', 'web design', 'print design', 'branding',
+        'logo design', 'packaging design', 'industrial design', 'product design', 'interior design',
+        'architectural design', 'cad', 'autocad', '3d modeling', 'rendering',
+        
+        # Fitness & Health
+        'personal training', 'fitness coaching', 'group fitness', 'yoga instruction', 'pilates',
+        'strength training', 'cardio training', 'functional training', 'sports conditioning',
+        'injury prevention', 'rehabilitation', 'nutrition coaching', 'meal planning', 'weight management',
+        'fitness assessment', 'program design', 'client motivation', 'health education',
+        'cpr certification', 'first aid', 'anatomy', 'physiology', 'exercise science',
+        'sports medicine', 'physical therapy', 'massage therapy', 'wellness coaching',
+        
+        # Finance & Accounting
+        'accounting', 'bookkeeping', 'financial analysis', 'budgeting', 'forecasting', 'tax preparation',
+        'audit', 'compliance', 'financial reporting', 'accounts payable', 'accounts receivable',
+        'payroll', 'cost accounting', 'management accounting', 'financial planning', 'investment analysis',
+        'risk management', 'insurance', 'banking', 'credit analysis', 'loan processing',
+        'financial modeling', 'valuation', 'mergers and acquisitions', 'corporate finance',
+        'quickbooks', 'sage', 'financial software', 'gaap', 'ifrs', 'sox compliance',
+        
+        # General Business Skills
+        'leadership', 'team management', 'communication', 'public speaking', 'presentation',
+        'customer service', 'problem solving', 'critical thinking', 'time management', 'organization',
+        'multitasking', 'attention to detail', 'adaptability', 'teamwork', 'collaboration',
+        'conflict resolution', 'decision making', 'strategic thinking', 'innovation', 'creativity',
+        'finance', 'management', 'powerpoint', 'analytics', 'agile', 'scrum',
         
         # Other Technical
-        'git', 'github', 'jira', 'confluence', 'api', 'rest', 'graphql', 'microservices', 'testing', 'debugging'
+        'git', 'jira', 'confluence', 'api', 'rest', 'graphql', 'microservices', 'testing', 'debugging',
+        'networking', 'security', 'blockchain', 'cryptocurrency'
     ]
     
     text_lower = text.lower()
