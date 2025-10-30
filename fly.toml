@@ -1,0 +1,23 @@
+app = 'resume-matcher-ml'
+primary_region = 'sjc'
+
+[build]
+
+[env]
+  FLASK_ENV = 'production'
+
+[http_service]
+  internal_port = 5009
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[deploy]
+  release_command = 'python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer(\"all-MiniLM-L6-v2\")"'

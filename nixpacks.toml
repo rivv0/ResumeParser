@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ['python311', 'gcc', 'g++']
+
+[phases.install]
+cmds = ['pip install --no-cache-dir -r requirements.txt']
+
+[phases.build]
+cmds = [
+  'python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer(\"all-MiniLM-L6-v2\")"',
+  'mkdir -p uploads'
+]
+
+[start]
+cmd = 'gunicorn app:app --bind 0.0.0.0:$PORT --timeout 300 --workers 1 --preload'
