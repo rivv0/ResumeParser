@@ -473,74 +473,102 @@ def extract_experience(text):
     return 0
 
 
-def fetch_jobs_from_api():
-    # Using Adzuna API for real job data (free tier available)
-    app_id = "YOUR_ADZUNA_APP_ID"  # Get from https://developer.adzuna.com/
-    app_key = "YOUR_ADZUNA_APP_KEY"
-
-    # Try Adzuna API first
+def fetch_jobs_from_api(search=None, location=None):
+    """
+    Fetch jobs from multiple sources with proper fallback handling.
+    """
+    
+    # ========== TRY ADZUNA API FIRST ==========
+    app_id = "8b08337d"
+    app_key = "732adbab8c05ccb0425581241a832428"
+    url = "https://api.adzuna.com/v1/api/jobs/in/search/1"
+    
+    params = {
+        "app_id": app_id,
+        "app_key": app_key,
+        "results_per_page": 20,
+        "content-type": "application/json"
+    }
+    
+    if search:
+        params["what"] = search
+    if location:
+        params["where"] = location
+    
     try:
-        url = f"https://api.adzuna.com/v1/api/jobs/us/search/1"
-        params = {
-            "app_id": app_id,
-            "app_key": app_key,
-            "results_per_page": 20,
-            "what": "software engineer OR data scientist OR marketing OR accountant OR sales",
-            "content-type": "application/json",
-        }
-
+        print(f"Fetching jobs from Adzuna API...")
         response = requests.get(url, params=params, timeout=10)
-        if response.status_code == 200:
-            data = response.json()
+        response.raise_for_status()
+        
+        data = response.json()
+        results = data.get("results", [])
+        
+        if results:
             jobs = []
-
-            for job in data.get("results", []):
-                jobs.append(
-                    {
-                        "title": job.get("title", "N/A"),
-                        "company": job.get("company", {}).get("display_name", "N/A"),
-                        "location": job.get("location", {}).get("display_name", "N/A"),
-                        "description": job.get("description", "N/A"),
-                        "salary": f"${job.get('salary_min', 0):,.0f} - ${job.get('salary_max', 0):,.0f}"
-                        if job.get("salary_min")
-                        else "Not specified",
-                        "url": job.get("redirect_url", "#"),
-                    }
-                )
-
-            if jobs:
-                return jobs
+            for job in results:
+                # Extract description safely
+                description = job.get("description", "")
+                if not description:
+                    description = f"{job.get('title', 'Job')} position at {job.get('company', {}).get('display_name', 'company')}"
+                
+                jobs.append({
+                    "title": job.get("title", "N/A"),
+                    "company": job.get("company", {}).get("display_name", "N/A"),
+                    "location": job.get("location", {}).get("display_name", "N/A"),
+                    "description": description,
+                    "salary": f"₹{job.get('salary_min', 0):,.0f} - ₹{job.get('salary_max', 0):,.0f}"
+                              if job.get("salary_min") else "Not specified",
+                    "url": job.get("redirect_url", "#"),
+                    "contract_time": job.get("contract_time", "N/A")
+                })
+            
+            print(f"✓ Successfully fetched {len(jobs)} jobs from Adzuna")
+            return jobs
+        else:
+            print("No jobs found in Adzuna, trying Remotive...")
+    
     except Exception as e:
-        print(f"Adzuna API Error: {e}")
-
-    # Try GitHub Jobs API alternative
+        print(f"✗ Adzuna API Error: {e}")
+    
+    
+    # ========== TRY REMOTIVE API AS FALLBACK ==========
     try:
-        url = "https://remotive.io/api/remote-jobs"
-        params = {"limit": 20}
-
-        response = requests.get(url, params=params, timeout=10)
+        print("Fetching jobs from Remotive API...")
+        remotive_url = "https://remotive.io/api/remote-jobs"
+        remotive_params = {"limit": 20}
+        
+        response = requests.get(remotive_url, params=remotive_params, timeout=10)
+        
         if response.status_code == 200:
             data = response.json()
-            jobs = []
-
-            for job in data.get("jobs", [])[:20]:
-                jobs.append(
-                    {
+            remotive_jobs = data.get("jobs", [])
+            
+            if remotive_jobs:
+                jobs = []
+                for job in remotive_jobs[:20]:
+                    description = job.get("description", "")
+                    if not description:
+                        description = f"Remote {job.get('title', 'position')} at {job.get('company_name', 'company')}"
+                    
+                    jobs.append({
                         "title": job.get("title", "N/A"),
                         "company": job.get("company_name", "N/A"),
                         "location": "Remote",
-                        "description": job.get("description", "N/A"),
+                        "description": description,
                         "salary": job.get("salary", "Not specified"),
                         "url": job.get("url", "#"),
-                    }
-                )
-
-            if jobs:
+                        "contract_time": "Remote"
+                    })
+                
+                print(f"✓ Successfully fetched {len(jobs)} jobs from Remotive")
                 return jobs
+    
     except Exception as e:
-        print(f"Remotive API Error: {e}")
-
-    # Enhanced fallback jobs with real company URLs
+        print(f"✗ Remotive API Error: {e}")
+    
+    
+    # ========== FALLBACK TO HARDCODED JOBS ==========
+    print("⚠ Using fallback job listings")
     return [
         {
             "title": "Senior Software Engineer",
@@ -549,6 +577,7 @@ def fetch_jobs_from_api():
             "description": "Design and develop large-scale software systems. Work with cutting-edge technologies including Python, Go, and distributed systems. Collaborate with cross-functional teams to deliver high-quality products.",
             "salary": "$150,000 - $250,000",
             "url": "https://careers.google.com/jobs/",
+            "contract_time": "Full-time"
         },
         {
             "title": "Data Scientist",
@@ -557,6 +586,7 @@ def fetch_jobs_from_api():
             "description": "Apply machine learning and statistical analysis to solve complex business problems. Work with large datasets, build predictive models, and provide actionable insights to drive business decisions.",
             "salary": "$130,000 - $200,000",
             "url": "https://careers.microsoft.com/us/en",
+            "contract_time": "Full-time"
         },
         {
             "title": "Product Marketing Manager",
@@ -565,6 +595,7 @@ def fetch_jobs_from_api():
             "description": "Lead go-to-market strategies for innovative products. Develop marketing campaigns, conduct market research, and work closely with product teams to drive user adoption and engagement.",
             "salary": "$140,000 - $220,000",
             "url": "https://jobs.apple.com/",
+            "contract_time": "Full-time"
         },
         {
             "title": "Senior Financial Analyst",
@@ -573,6 +604,7 @@ def fetch_jobs_from_api():
             "description": "Perform financial analysis, budgeting, and forecasting. Support strategic decision-making through data-driven insights and financial modeling. Work with cross-functional teams on business planning.",
             "salary": "$100,000 - $150,000",
             "url": "https://www.amazon.jobs/",
+            "contract_time": "Full-time"
         },
         {
             "title": "Sales Director",
@@ -581,6 +613,7 @@ def fetch_jobs_from_api():
             "description": "Lead enterprise sales team to drive revenue growth. Develop strategic partnerships, manage key client relationships, and implement sales processes to achieve targets.",
             "salary": "$180,000 - $300,000",
             "url": "https://salesforce.wd1.myworkdayjobs.com/External_Career_Site",
+            "contract_time": "Full-time"
         },
         {
             "title": "DevOps Engineer",
@@ -589,6 +622,7 @@ def fetch_jobs_from_api():
             "description": "Build and maintain cloud infrastructure at scale. Implement CI/CD pipelines, monitor system performance, and ensure high availability of streaming services for millions of users.",
             "salary": "$160,000 - $240,000",
             "url": "https://jobs.netflix.com/",
+            "contract_time": "Full-time"
         },
         {
             "title": "UX Designer",
@@ -597,6 +631,7 @@ def fetch_jobs_from_api():
             "description": "Design intuitive user experiences for social media platforms. Conduct user research, create wireframes and prototypes, and collaborate with product teams to enhance user engagement.",
             "salary": "$120,000 - $180,000",
             "url": "https://www.metacareers.com/",
+            "contract_time": "Full-time"
         },
         {
             "title": "Machine Learning Engineer",
@@ -605,9 +640,9 @@ def fetch_jobs_from_api():
             "description": "Develop AI systems for autonomous vehicles. Work on computer vision, deep learning models, and real-time inference systems to advance self-driving technology.",
             "salary": "$170,000 - $280,000",
             "url": "https://www.tesla.com/careers",
+            "contract_time": "Full-time"
         },
     ]
-
 
 def calculate_match_score(resume_text, resume_skills, job_description, job_title):
     # Generate embeddings using sentence transformer
@@ -644,10 +679,10 @@ def calculate_match_score(resume_text, resume_skills, job_description, job_title
 
     return {
         "score": round(
-            min(final_score * 100, 95), 3
+            min(final_score * 100, 95), 2
         ),  # Cap at 95% with 3 decimal precision
-        "semantic_similarity": round(boosted_semantic * 100, 3),
-        "skill_match": round(boosted_skill * 100, 3),
+        "semantic_similarity": round(boosted_semantic * 100, 2),
+        "skill_match": round(boosted_skill * 100, 2),
         "matching_skills": list(matching_skills),
         "job_skills": job_skills,
     }
@@ -700,54 +735,99 @@ def index():
 
 
 @app.route("/upload", methods=["POST"])
+@app.route("/upload", methods=["POST"])
 def upload_file():
+    # Check if file is in request
     if "resume" not in request.files:
+        print("❌ Error: No file in request")
         return redirect(url_for("index"))
 
     file = request.files["resume"]
+    
+    # Check if filename is empty
     if file.filename == "":
+        print("❌ Error: Empty filename")
         return redirect(url_for("index"))
 
-    if file and file.filename.lower().endswith(".pdf"):
-        try:
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(filepath)
+    # Check if file is PDF
+    if not (file and file.filename.lower().endswith(".pdf")):
+        print("❌ Error: File is not a PDF")
+        return redirect(url_for("index"))
 
-            # Extract text and analyze
-            resume_text = extract_text_from_pdf(filepath)
-            if not resume_text:
-                os.remove(filepath)
-                return redirect(url_for("index"))
+    try:
+        # Save file
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(filepath)
+        print(f"✓ File saved: {filepath}")
 
-            resume_skills = extract_skills(resume_text)
-            experience_years = extract_experience(resume_text)
+        # Extract text from PDF
+        print("📄 Extracting text from PDF...")
+        resume_text = extract_text_from_pdf(filepath)
+        
+        if not resume_text or len(resume_text.strip()) < 50:
+            print(f"❌ Error: Insufficient text extracted (length: {len(resume_text)})")
+            os.remove(filepath)
+            return redirect(url_for("index"))
+        
+        print(f"✓ Extracted {len(resume_text)} characters from resume")
 
-            # Fetch jobs from API
-            jobs = fetch_jobs_from_api()
+        # Extract skills and experience
+        print("🔍 Extracting skills...")
+        resume_skills = extract_skills(resume_text)
+        print(f"✓ Found {len(resume_skills)} skills: {resume_skills[:5]}...")
+        
+        experience_years = extract_experience(resume_text)
+        print(f"✓ Experience: {experience_years} years")
 
-            # Calculate matches
-            job_matches = []
-            for job in jobs:
+        # Fetch jobs from API
+        print("🌐 Fetching jobs from API...")
+        jobs = fetch_jobs_from_api()
+        print(f"✓ Retrieved {len(jobs)} jobs")
+
+        # Calculate matches
+        print("🤖 Calculating job matches...")
+        job_matches = []
+        for i, job in enumerate(jobs, 1):
+            try:
                 match_data = calculate_match_score(
-                    resume_text, resume_skills, job["description"], job["title"]
+                    resume_text, 
+                    resume_skills, 
+                    job.get("description", ""), 
+                    job.get("title", "")
                 )
                 job_matches.append({"job": job, "match_data": match_data})
+                print(f"  Job {i}/{len(jobs)}: {job['title']} - Score: {match_data['score']}%")
+            except Exception as e:
+                print(f"  ⚠ Error matching job {i}: {e}")
+                continue
 
-            # Sort by score
-            job_matches.sort(key=lambda x: x["match_data"]["score"], reverse=True)
-
-            # Clean up
+        if not job_matches:
+            print("❌ Error: No job matches calculated")
             os.remove(filepath)
-
-            return generate_results_html(resume_skills, experience_years, job_matches)
-
-        except Exception as e:
-            if "filepath" in locals() and os.path.exists(filepath):
-                os.remove(filepath)
             return redirect(url_for("index"))
 
-    return redirect(url_for("index"))
+        # Sort by score
+        job_matches.sort(key=lambda x: x["match_data"]["score"], reverse=True)
+        print(f"✓ Top match: {job_matches[0]['job']['title']} ({job_matches[0]['match_data']['score']}%)")
+
+        # Clean up
+        os.remove(filepath)
+        print("✓ Cleaned up temporary file")
+
+        # Generate results
+        print("📊 Generating results page...")
+        return generate_results_html(resume_skills, experience_years, job_matches)
+
+    except Exception as e:
+        print(f"❌ Fatal Error in upload_file: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        if 'filepath' in locals() and os.path.exists(filepath):
+            os.remove(filepath)
+        
+        return redirect(url_for("index"))
 
 
 def generate_results_html(resume_skills, experience_years, job_matches):
@@ -764,11 +844,15 @@ def generate_results_html(resume_skills, experience_years, job_matches):
             else "None"
         )
 
+        score = f"{match_data['score']:.2f}"
+        semantic_sim = f"{match_data['semantic_similarity']:.2f}"
+        skill_match = f"{match_data['skill_match']:.2f}"
+
         jobs_html += f'''
         <div class="job-card">
             <div class="job-header">
                 <h3>{job["title"]}</h3>
-                <div class="score">{match_data["score"]}%</div>
+                <div class="score">{score}%</div>
             </div>
             <div class="job-info">
                 <p><strong>Company:</strong> {job["company"]}</p>
@@ -779,8 +863,8 @@ def generate_results_html(resume_skills, experience_years, job_matches):
                 <p>{job["description"][:300]}...</p>
             </div>
             <div class="match-details">
-                <p><strong>Semantic Similarity:</strong> {match_data["semantic_similarity"]}%</p>
-                <p><strong>Skill Match:</strong> {match_data["skill_match"]}%</p>
+                <p><strong>Semantic Similarity:</strong> {semantic_sim}%</p>
+                <p><strong>Skill Match:</strong> {skill_match}%</p>
                 <p><strong>Matching Skills:</strong> {matching_skills_html}</p>
             </div>
             <a href="{job["url"]}" target="_blank" class="apply-btn">Apply Now</a>

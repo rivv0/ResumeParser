@@ -285,12 +285,7 @@ def index():
     </head>
     <body>
         <div class="container">
-            <header class="header">
-                <h1>Advanced ML Resume Matcher</h1>
-                <p class="subtitle">State-of-the-art AI models for precise job matching</p>
-                <div class="ml-badge">Powered by BGE + E5 + Ensemble ML</div>
-            </header>
-            
+
             <main class="main-content">
                 <section class="upload-section">
                     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
@@ -898,11 +893,6 @@ def generate_ml_results_html(resume_analysis, job_matches, filename):
     </head>
     <body>
         <div class="container">
-            <header class="header">
-                <h1>ML Resume Analysis Results</h1>
-                <p>Advanced analysis using BGE, E5, and ensemble ML models</p>
-                <div class="ml-badge">Processed with {len(resume_analysis.get('skills', {}))} skill categories</div>
-            </header>
             
             <main class="content">
                 <a href="/" class="back-link">← Analyze Another Resume</a>
